@@ -1,5 +1,7 @@
 package main
 
+//A JSON Rest API Backend Server
+
 import (
 	"fmt"
 	"log"
@@ -36,6 +38,19 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+
+	//now hooking up multiple the handlers , using the chi router, to a specific http method and path
+	//creating a new router to Mount it
+	v1Router := chi.NewRouter()
+
+	//changed from HandleFunc to get to make it only fire in get requests
+	v1Router.Get("/healthz", handlerReadiness)
+	v1Router.Get("/err", handlerErr)
+
+	//So nesting a V1 router under the /v1 path, and hooking up the readiness function to the /ready path
+	//so the full path for this request will be /v1/ready
+	//this has been done so that if there are any breaking chnages in the  future, we have 2 handlers, one v1 and other v2, a standard practoce
+	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
 		Handler: router,
