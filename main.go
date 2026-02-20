@@ -3,18 +3,25 @@ package main
 //A JSON Rest API Backend Server
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/Sanrose-Bhets/Backend-Server-from-Scratch/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 )
 
+// the sqlc manages the internal/database folder thus you not need to manually update it
+type apiConfig struct {
+	//holds the connection to the database
+	DB *database.Queries
+}
+
 func main() {
-	fmt.Println("Hello world")
 
 	godotenv.Load()
 
@@ -22,6 +29,14 @@ func main() {
 	if portString == "" {
 		log.Fatal("PORT was not found in the environment")
 	}
+
+	//importing our databse connection
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL was not found in the environment")
+	}
+
+	conn, err := sql.Open("postgres", dbURL)
 
 	fmt.Println("Port: ", portString)
 
