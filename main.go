@@ -13,6 +13,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+
+	_ "github.com/lib/pq"
 )
 
 // the sqlc manages the internal/database folder thus you not need to manually update it
@@ -37,8 +39,20 @@ func main() {
 	}
 
 	conn, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal("Can't Connect to Database")
+	}
 
 	fmt.Println("Port: ", portString)
+
+	//Creating a new API config
+	//however we need a DB connection but we have a sql.open connection thus we must convert it
+	queries := database.New(conn)
+
+	//we can pass this to the handlers so they have database access
+	apiCfg := apiConfig{
+		DB: queries,
+	}
 
 	//creating a new router object with chi router
 	router := chi.NewRouter()
@@ -61,6 +75,7 @@ func main() {
 	//changed from HandleFunc to get to make it only fire in get requests
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerErr)
+	v1Router.Post("/users", apiCfg.handlerCreateUser)
 
 	//So nesting a V1 router under the /v1 path, and hooking up the readiness function to the /ready path
 	//so the full path for this request will be /v1/ready
@@ -74,7 +89,7 @@ func main() {
 
 	log.Printf("Server is Starting on Port: %v", portString)
 
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}
