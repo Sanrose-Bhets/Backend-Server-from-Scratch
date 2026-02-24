@@ -76,6 +76,7 @@ func main() {
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerErr)
 	v1Router.Post("/users", apiCfg.handlerCreateUser)
+	v1Router.Get("/users", apiCfg.handlerGetUser)
 
 	//So nesting a V1 router under the /v1 path, and hooking up the readiness function to the /ready path
 	//so the full path for this request will be /v1/ready
