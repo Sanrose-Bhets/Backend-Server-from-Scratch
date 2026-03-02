@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Sanrose-Bhets/Backend-Server-from-Scratch/internal/database"
 	"github.com/go-chi/chi"
@@ -54,6 +55,8 @@ func main() {
 		DB: queries,
 	}
 
+	go startScraping(queries, 10, time.Minute)
+
 	//creating a new router object with chi router
 	router := chi.NewRouter()
 
@@ -81,6 +84,10 @@ func main() {
 	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
 	v1Router.Get("/feeds", apiCfg.handlerGetFeed)
 
+	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
+	v1Router.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerGetFeedFollows))
+	v1Router.Delete("/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
+
 	//So nesting a V1 router under the /v1 path, and hooking up the readiness function to the /ready path
 	//so the full path for this request will be /v1/ready
 	//this has been done so that if there are any breaking chnages in the  future, we have 2 handlers, one v1 and other v2, a standard practoce
@@ -97,4 +104,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }
